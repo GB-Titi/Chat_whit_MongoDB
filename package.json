@@ -1,0 +1,10 @@
+{
+	"name": "Chat",
+	"version": "0.0.1",
+	"description": "Premier chat avec socket io + mongoDB",
+	"dependencies": {
+		"express": "^4.10.2",
+		"mongodb": "^3.6.5",
+		"socket.io": "^4.0.0"
+	}
+}
