@@ -3,7 +3,6 @@ const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const MongoClient = require('mongodb').MongoClient;
-
 const url = 'mongodb://localhost:27017'
 const dbName = 'MaDBChat';
 
@@ -18,6 +17,7 @@ MongoClient.connect(url, function(err, client) {
         const db = client.db(dbName);
         //const db = instance.db('MaDBChat');
         const collection = db.collection('ChatsMessages');
+        let nb_user = 0;
 
         // On gère les requêtes HTTP des utilisateurs en leur renvoyant les fichiers du dossier 'public'
         app.use("/", express.static(__dirname + "/public"));
@@ -25,7 +25,7 @@ MongoClient.connect(url, function(err, client) {
         io.on('connection', function (socket) {
 
             // Utilisateur connecté à la socket
-            var loggedUser;
+            let loggedUser;
 
             console.log('a user connected');
 
@@ -33,12 +33,15 @@ MongoClient.connect(url, function(err, client) {
             socket.on('disconnect', function () {
                 if (loggedUser !== undefined) {
                     console.log('user disconnected : ' + loggedUser.username);
-                    var serviceMessage = {
+                    nb_user = nb_user - 1;
+                    //console.log(nb_user);
+                    let serviceMessage = {
                         text: 'User "' + loggedUser.username + '" disconnected',
                         type: 'logout'
                     };
 
                     socket.broadcast.emit('service-message', serviceMessage);
+                    socket.broadcast.emit('nb_users', nb_user);
                 }
             });
 
@@ -49,14 +52,16 @@ MongoClient.connect(url, function(err, client) {
              */
             socket.on('user-login', function (user) {
                 loggedUser = user;
-
+                nb_user = nb_user + 1;
+                socket.broadcast.emit('nb_users', nb_user);
                 if (loggedUser !== undefined) {
-                    var serviceMessage = {
+                    let serviceMessage = {
                         text: 'User "' + loggedUser.username + '" logged in',
                         type: 'login'
                     };
 
                     socket.broadcast.emit('service-message', serviceMessage);
+                    socket.broadcast.emit('nb_users', nb_user);
                 }
             });
 
@@ -68,6 +73,7 @@ MongoClient.connect(url, function(err, client) {
 
                 //insertion dans la collection du username et de son message
                 collection.insertOne({Pseudo : loggedUser.username, message : message.text}); 
+                socket.broadcast.emit('nb_users', nb_user);
             });
         });
 

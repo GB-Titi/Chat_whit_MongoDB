@@ -1,13 +1,13 @@
 //global io
-var socket = io();
+let socket = io();
 
 //Connexion d'un utilisateur:
-$('#login form').submit(function (e) {
+$('#login form').submit(function (e, nb_user) {
     //evite le rechargement
     e.preventDefault();
 
     //création d'un objet user
-    var user = {
+    let user = {
         username : $('#login input').val().trim()
     };
 
@@ -30,7 +30,7 @@ $('#chat form').submit(function (e) {
     e.preventDefault();
 
     //création d'un objet message
-    var message = {
+    let message = {
         text : $('#m').val()
     };
 
@@ -55,4 +55,11 @@ socket.on('chat-message', function (message) {
 // Réception d'un message de service    
 socket.on('service-message', function (message) {
     $('#messages').append($('<li class="' + message.type + '">').html('<span class="info">information</span> ' + message.text));
+});
+
+// envoie du nombre de users
+socket.on('nb_users', function(nb_users){
+    console.log(nb_users);
+    $('#users_connected').html("");
+    $('#users_connected').html(nb_users);
 });
